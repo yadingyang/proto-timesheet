@@ -1,0 +1,59 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Workday.master.cs" Inherits="Workday.Web.Workday" %>
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Bill-JC TimeSheet System</title>
+    <!--http://v3.bootcss.com/-->
+    <%--<link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" />--%>
+    <!--script src="//cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></!--script-->
+    <!--script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></!--script-->
+    <style type="text/css">
+        #Wmenu {
+            padding: 10px;
+            padding-top:20px;
+            font-size: x-large;
+            font-style: oblique;
+        }
+             #Wmenu .selectedMenuItem {
+        background: #ff0000;
+        text-decoration: none;
+        color: #333333;
+    }
+    </style>
+    <asp:ContentPlaceHolder ID="head" runat="server">
+    </asp:ContentPlaceHolder>
+</head>
+<body>
+    <form id="form1" runat="server">
+      <div style="float:left"> <h3>TimeSheet(Clockin/Clockout) System </h3></div> 
+         <div  align="right" style="float:right;padding-top:10px">
+            <asp:Label ID="WelcomeMsg" runat="server"></asp:Label>
+             <%--<asp:Button ID="Logout" Text="Logout" runat="server" onclick="Logout_Click"/>--%>
+             <asp:LinkButton ID="Logoutlink" runat="server" OnClick="Logout_Click">Logout</asp:LinkButton>
+        </div>
+        <div id="Wmenu" align="left">
+        <asp:Menu ID="Menu1" Orientation="Horizontal" 
+                StaticSelectedStyle-CssClass="MenuItem_selected" runat="server" RenderingMode="Table" >
+             <staticselectedstyle backcolor="LightBlue"  borderstyle="Solid"  bordercolor="Black"   borderwidth="1"/>
+            <Items>
+                <asp:MenuItem NavigateUrl="~/Default.aspx" Text="Home" Value="Home" ></asp:MenuItem>
+                <asp:MenuItem NavigateUrl="~/Login.aspx" Text="Login" Value="Login"></asp:MenuItem>
+                <asp:MenuItem NavigateUrl="~/TimeSheet.aspx" Text="TimeSheet" Value="Login"></asp:MenuItem>
+                <asp:MenuItem NavigateUrl="~/AnotherContent.aspx" Text="Content" Value="Content" Target="_blank"></asp:MenuItem>
+                <asp:MenuItem NavigateUrl="~/Admin.aspx" Text="Admin" Value="Admin" ></asp:MenuItem>
+                <asp:MenuItem NavigateUrl="~/Admin2.aspx" Text="Admin2" Value="Admin2" ></asp:MenuItem>
+                <asp:MenuItem NavigateUrl="~/Admindept.aspx" Text="AdminDepts" Value="Depts" ></asp:MenuItem>
+            </Items>
+        </asp:Menu>
+      </div>
+    <div>
+        <asp:ContentPlaceHolder ID="body" runat="server">
+        
+        </asp:ContentPlaceHolder>
+    </div>
+    </form>
+</body>
+</html>
