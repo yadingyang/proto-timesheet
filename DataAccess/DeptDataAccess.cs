@@ -17,15 +17,16 @@ namespace Workday.DataAccess
         {
             DateTime now = DateTime.Now;
             bool ifadd = false;
+            int deptid=0;
             using (SqlConnection conn = new SqlConnection(_conn))
             {
                 conn.Open();
                 try
-                {
+                {   //update dept table and get new deptid
                     SqlCommand cmd = new SqlCommand();
                     if (newdept.Manager.HasValue & newdept.ParentDept.HasValue &conflictdeptid==0)
                     {  //no manager conflict
-                        string sql = "insert into [Dept] (DeptName, Manager, ParentDept, CreateDate) values (@value1, @value2, @value3,@value4);update User1 set BelongToDept=@value2; ";
+                        string sql = "insert into [Dept] (DeptName, Manager, ParentDept, CreateDate) values (@value1, @value2, @value3,@value4);SELECT SCOPE_IDENTITY(); ";
                         cmd.Connection = conn;
                         cmd.CommandText = sql;
                         cmd.Parameters.AddWithValue("@value1", newdept.DeptName);
@@ -35,7 +36,7 @@ namespace Workday.DataAccess
                     }
                     else if (newdept.Manager.HasValue & newdept.ParentDept.HasValue & conflictdeptid != 0)
                     { //manager conflict
-                        string sql = "insert into [Dept] (DeptName, Manager, ParentDept, CreateDate) values (@value1, @value2, @value3,@value4);update Dept set Manager=NULL where DeptId=@value5;update User1 set BelongToDept=@value2; ";
+                        string sql = "insert into [Dept] (DeptName, Manager, ParentDept, CreateDate) values (@value1, @value2, @value3,@value4);SELECT SCOPE_IDENTITY();update Dept set Manager=NULL where DeptId=@value5;";
                         cmd.Connection = conn;
                         cmd.CommandText = sql;
                         cmd.Parameters.AddWithValue("@value1", newdept.DeptName);
@@ -46,7 +47,7 @@ namespace Workday.DataAccess
                     }
                     else if (newdept.Manager.HasValue & !newdept.ParentDept.HasValue & conflictdeptid == 0)
                     { //no manager conflict
-                        string sql = "insert into [Dept] (DeptName, Manager, CreateDate) values (@value1, @value2, @value3);update User1 set BelongToDept=@value2; ";
+                        string sql = "insert into [Dept] (DeptName, Manager, CreateDate) values (@value1, @value2, @value3);SELECT SCOPE_IDENTITY();";
                         cmd.Connection = conn;
                         cmd.CommandText = sql;
                         cmd.Parameters.AddWithValue("@value1", newdept.DeptName);
@@ -55,7 +56,7 @@ namespace Workday.DataAccess
                     }
                     else if (newdept.Manager.HasValue & !newdept.ParentDept.HasValue & conflictdeptid != 0)
                     { // manager conflict
-                        string sql = "insert into [Dept] (DeptName, Manager, CreateDate) values (@value1, @value2, @value3);update User1 set BelongToDept=@value2; update Dept set Manager=NULL where DeptId=@value4 ";
+                        string sql = "insert into [Dept] (DeptName, Manager, CreateDate) values (@value1, @value2, @value3); SELECT SCOPE_IDENTITY(); update Dept set Manager=NULL where DeptId=@value4 ";
                         cmd.Connection = conn;
                         cmd.CommandText = sql;
                         cmd.Parameters.AddWithValue("@value1", newdept.DeptName);
@@ -65,7 +66,7 @@ namespace Workday.DataAccess
                     }
                     else if (!newdept.Manager.HasValue & newdept.ParentDept.HasValue)
                     {
-                        string sql = "insert into [Dept] (DeptName, ParentDept, CreateDate) values (@value1, @value2, @value3); ";
+                        string sql = "insert into [Dept] (DeptName, ParentDept, CreateDate) values (@value1, @value2, @value3);SELECT SCOPE_IDENTITY(); ";
                         cmd.Connection = conn;
                         cmd.CommandText = sql;
                         cmd.Parameters.AddWithValue("@value1", newdept.DeptName);
@@ -74,17 +75,19 @@ namespace Workday.DataAccess
                     }
                     else
                     {
-                        string sql = "insert into [Dept] (DeptName, CreateDate) values (@value1, @value2); ";
+                        string sql = "insert into [Dept] (DeptName, CreateDate) values (@value1, @value2);SELECT SCOPE_IDENTITY(); ";
                         cmd.Connection = conn;
                         cmd.CommandText = sql;
                         cmd.Parameters.AddWithValue("@value1", newdept.DeptName);
                         cmd.Parameters.AddWithValue("@value2", now);
                     }
                    
-                    var result = cmd.ExecuteNonQuery();
-                    if (result != 0 & result != -1)
+                    var result = cmd.ExecuteScalar();
+                    if (!(result is DBNull) & result!=null)
                     {
-                        ifadd = true ;
+                        deptid = Convert.ToInt32(result); //ifadd = true ;
+                        if (!newdept.Manager.HasValue)
+                            ifadd = true;
                     }
                 }
                 catch (SqlException ex)
@@ -95,8 +98,31 @@ namespace Workday.DataAccess
                 {
                     throw ex;
                 }
+                if (deptid != 0 & newdept.Manager.HasValue)
+                {
+                    try
+                    {   //update user1 table base on new deptid
+                        SqlCommand cmd = new SqlCommand();
+                        string sql = "update User1 set BelongToDept=@value1 where UserId=@value2; ";
+                        cmd.Connection = conn;
+                        cmd.CommandText = sql;
+                        cmd.Parameters.AddWithValue("@value1", deptid);
+                        cmd.Parameters.AddWithValue("@value2", newdept.Manager);
+                        int result1 = cmd.ExecuteNonQuery();
+                        if (result1 != 0 & result1 != -1)
+                            ifadd = true;
+                        conn.Close();
+                    }
+                    catch (SqlException ex)
+                    {
+                        throw ex;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ex;
+                    }
+                }
 
-                conn.Close();
             }
             return ifadd;
         }
@@ -363,6 +389,28 @@ namespace Workday.DataAccess
             if (conn.State == System.Data.ConnectionState.Open)
             {
                 try
+                {   //如果部门原理有manager，则需要在update之前，将原来manager 的user表中的dept设置为null
+                    string sql = "select Manager from [Dept] where DeptId=@value1";
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@value1", dept.DeptId);
+                    var result = cmd.ExecuteScalar();
+                    if (!(result is DBNull))
+                    {
+                        string sql1 = "update [User1] set BelongToDept=NULL where UserId=@value2";
+                        SqlCommand cmd1 = new SqlCommand(sql1, conn);
+                        cmd1.Parameters.AddWithValue("@value2", Convert.ToInt32(result));
+                        var result1 = cmd1.ExecuteNonQuery();
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    throw ex;
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+                try
                 {
 
                     string sql = "update [Dept] set DeptName=@value1, ParentDept=@value2, Manager=@value3 where DeptId=@value4";
@@ -430,6 +478,29 @@ namespace Workday.DataAccess
             conn.Open();
             if (conn.State == System.Data.ConnectionState.Open)
             {
+                try
+                {   //如果部门原理有manager，则需要在update之前，将原来manager 的user表中的dept设置为null
+                    string sql = "select Manager from [Dept] where DeptId=@value1";
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@value1", dept.DeptId);
+                    var result = cmd.ExecuteScalar();
+
+                    if (!(result is DBNull))
+                    {
+                        string sql1 = "update [User1] set BelongToDept=NULL where UserId=@value2";
+                        SqlCommand cmd1 = new SqlCommand(sql1, conn);
+                        cmd1.Parameters.AddWithValue("@value2", Convert.ToInt32(result));
+                        var result1 = cmd1.ExecuteNonQuery();
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    throw ex;
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
                 try
                 {
 
@@ -517,7 +588,6 @@ namespace Workday.DataAccess
             }
             return subdeptcount;
         }
-
         public static bool DeleteDept(int deptid)
         {
             bool ifdelete = false;

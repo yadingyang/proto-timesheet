@@ -7,6 +7,28 @@ using System.Security.Cryptography;
 
 namespace Workday.Common
 {
+    // to show users info on gridview
+    public interface IShowUsers
+    {
+         int UserId { get; set; }
+
+         string Email { get; set; }
+
+         string UserName { get; set; }
+
+         UserStatus Status { get; set; }
+
+         string StatusString { get; set; }
+
+         int DeptId { get; set; }
+
+         string DeptName { get; set; }
+
+         UserIsAdmin IsAdmin { get; set; }
+
+         DateTime CreateDate { get; set; }
+    }
+
     public class User
     {
         public int UserId { get; set; }
@@ -16,6 +38,8 @@ namespace Workday.Common
         public string UserName { get; set; }
 
         public string Password { get; set; }
+
+        public int DeptId { get; set; }
 
         public UserStatus Status { get; set; }
 

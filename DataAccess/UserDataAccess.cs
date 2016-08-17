@@ -153,6 +153,7 @@ namespace Workday.DataAccess
             return ds;
         }
 
+        //this is the old mothed, should be deprecated. the new mothed is GetAllUser2
         public static AllUser GetAllUser(Common.AllUser users)
         {
             //DataSet ds = new DataSet();
@@ -160,6 +161,14 @@ namespace Workday.DataAccess
             users.AllUserSet = (DataSet)ExecuteSqlString(sql);
             return users;
         }
+
+        //public static List<IShowUsers> GetAllUser2()
+        //{
+        //    List<IShowUsers> Users = new List<IShowUsers>();
+        //    string sql = "";
+
+        //}
+
 
         public static SecretQuestion GetSecretQuestion()
         {
