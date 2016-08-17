@@ -8,8 +8,8 @@
     </asp:Panel>
          <div style="padding-left:800px">  <asp:Button ID="TrigerAdd" runat="server" Text="Add Dept"  OnClick="TrigerAdd_Click" />  <br/><br />   </div>
          <asp:GridView ID="AllDeptsGridView" AutoGenerateColumns="False" runat="server" Font-Name="Verdana" 
-             AllowPaging="True" PageSize="10" AllowSorting="true" OnPageIndexChanging="AllDeptsGridView_PageIndexChanging"
-             Font-Size="10pt" Cellpadding="20"
+             AllowPaging="True" PageSize="15" AllowSorting="true" OnPageIndexChanging="AllDeptsGridView_PageIndexChanging"
+             Font-Size="10pt" Cellpadding="10"
              HeaderStyle-BackColor="Gray"
              HeaderStyle-ForeColor="White"
              AlternatingRowStyle-BackColor="#dddddd"

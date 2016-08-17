@@ -245,7 +245,7 @@ namespace Workday.Web
 
         protected void AllDeptsGridView_RowDataBound(object sender, GridViewRowEventArgs e)
         {
-            if (e.Row.RowType == DataControlRowType.DataRow && e.Row.RowState != DataControlRowState.Edit)
+            if (e.Row.RowType == DataControlRowType.DataRow & e.Row.RowState != (DataControlRowState.Edit|DataControlRowState.Alternate) & e.Row.RowState != DataControlRowState.Edit)
             {
                 LinkButton delete = e.Row.Cells[6].Controls[0] as LinkButton;
                 delete.OnClientClick = "return confirm('are you sure to delete this dept?')";
@@ -403,6 +403,7 @@ namespace Workday.Web
             g.Attributes["CurrentSortDir"] = (d == SortDirection.Ascending ? "DESC" : "ASC");
         }
 
+        //to test git function
         protected static DataTable ConvertListToDataTable<IShowDepts>(List<IShowDepts> items)
         {
             DataTable dataTable = new DataTable(typeof(IShowDepts).Name);
